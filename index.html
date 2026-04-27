@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payee / recipient management unification — cross-rail strategy</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,'Times New Roman',serif;background:#F9F8F5;color:#1A1814;line-height:1.6;padding:0 24px 48px}
+h1,h2,h3,.sans{font-family:'Helvetica Neue',Arial,sans-serif}
+
+/* ── Header ── */
+.page-header{padding:40px 0 28px;border-bottom:1px solid #E2DDD8;margin-bottom:32px}
+.page-meta{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:.05em;color:#8A867E;margin-bottom:10px}
+.page-title{font-size:28px;font-weight:400;color:#1A1814;margin-bottom:6px;line-height:1.3}
+.page-subtitle{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#6B6760;line-height:1.5}
+
+/* ── Legend ── */
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:24px}
+.legend-label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#8A867E;margin-right:4px}
+.bdg{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:500}
+.bdg-a{background:#96EDB8;color:#085030}
+.bdg-p{background:#FFD060;color:#5E2E00}
+.bdg-m{background:#FF9898;color:#680808}
+.bdg-r{background:#90BEFF;color:#082472}
+.bdg-n{background:#DDDBD6;color:#5A5750}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-a{background:#14A84A}
+.dot-p{background:#E08000}
+.dot-m{background:#D81818}
+.dot-r{background:#1845CC}
+.dot-n{background:#ADADAA}
+
+/* ── Scope note ── */
+.scope-box{background:#FFF;border:0.5px solid #E2DDD8;border-radius:8px;padding:14px 16px;margin-bottom:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scope-col-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;color:#8A867E;margin-bottom:6px}
+.scope-col-body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#4A4742;line-height:1.6}
+.scope-in{color:#1A6B3C;font-weight:500}
+.scope-out{color:#8A867E}
+
+/* ── Heatmap ── */
+.heatmap-section{margin-bottom:36px}
+.section-label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:.06em;color:#8A867E;margin-bottom:12px;text-transform:uppercase}
+.heatmap-wrap{overflow-x:auto}
+table.hm{width:100%;border-collapse:separate;border-spacing:0;font-family:'Helvetica Neue',Arial,sans-serif}
+.hm th{font-size:11px;font-weight:500;color:#6B6760;padding:6px 10px;text-align:center;border-bottom:1px solid #E2DDD8;white-space:nowrap}
+.hm th.cat-h{text-align:left;padding-left:0}
+.hm td{padding:10px 6px;text-align:center;border-bottom:0.5px solid #F0EDE8;font-size:12px}
+.hm td.cat-label{text-align:left;font-weight:500;color:#1A1814;padding-left:0;font-size:13px;padding-right:12px}
+.hm-a{background:#96F0BC}
+.hm-p{background:#FFD060}
+.hm-m{background:#FF9898}
+.hm-n{background:#EBEBEA;color:#ADADAA}
+.hm-sym{font-size:13px;font-weight:600}
+.hm-a .hm-sym{color:#054A20}
+.hm-p .hm-sym{color:#5A2A00}
+.hm-m .hm-sym{color:#680808}
+.hm-n .hm-sym{color:#C8C5C0}
+.rail-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.02em}
+.r-tr{background:#80B8FF;color:#042060}
+.r-bp{background:#50D8A8;color:#023A28}
+.r-rtp{background:#B0A8FF;color:#1A1070}
+.r-z{background:#FF8EC0;color:#480820}
+.r-ach{background:#88D840;color:#183000}
+.r-w{background:#FFD050;color:#442000}
+.r-me{background:#C0BEB8;color:#282828}
+
+/* ── Category accordions ── */
+.categories{display:flex;flex-direction:column;gap:10px;margin-bottom:36px}
+.cat{border:0.5px solid #E2DDD8;border-radius:10px;overflow:hidden;background:#FFF}
+.cat summary{padding:14px 18px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;background:#FAF9F7}
+.cat summary::-webkit-details-marker{display:none}
+.cat[open]>summary{border-bottom:0.5px solid #E2DDD8;background:#FFF}
+.cat-num{width:22px;height:22px;border-radius:50%;background:#F0EDE8;border:0.5px solid #D8D4CF;display:inline-flex;align-items:center;justify-content:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:600;flex-shrink:0;color:#6B6760}
+.cat-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;font-weight:600;color:#1A1814;flex:1}
+.cat-desc{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#8A867E;margin-left:auto;margin-right:8px}
+.cat-chev{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#ADADAA;transition:transform .2s;flex-shrink:0}
+.cat[open] .cat-chev{transform:rotate(180deg)}
+.cat-body{padding:18px}
+
+/* ── Segmented control ── */
+.seg{display:flex;gap:3px;padding:3px;background:#F0EDE8;border-radius:8px;margin-bottom:18px;width:fit-content}
+.seg-btn{padding:6px 20px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:500;border:none;border-radius:6px;background:transparent;color:#6B6760;cursor:pointer;transition:all .15s}
+.seg-btn.active{background:#FFF;color:#1A1814;border:0.5px solid #D8D4CF;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+/* ── Status blocks ── */
+.status-blocks{display:flex;flex-direction:column;gap:10px}
+.sblock{border-radius:8px;overflow:hidden;border:0.5px solid transparent}
+.sblock-head{padding:8px 12px;display:flex;align-items:center;gap:6px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em}
+.sblock-body{padding:10px 12px;font-size:13px;line-height:1.65;background:#FFF}
+.sblock-body ul{padding-left:16px}
+.sblock-body li{margin-bottom:3px;color:#3A3830}
+.sblock-body p{color:#3A3830}
+.sblock.aligned{border-color:#3CC870}
+.sblock.aligned .sblock-head{background:#90EDB5;color:#054A1E}
+.sblock.partial{border-color:#F0B020}
+.sblock.partial .sblock-head{background:#FFD060;color:#4E2400}
+.sblock.missing{border-color:#EF6060}
+.sblock.missing .sblock-head{background:#FF9898;color:#5E0808}
+.sblock.railspec{border-color:#4080F0}
+.sblock.railspec .sblock-head{background:#90BEFF;color:#082060}
+.sblock.vision{border-color:#8070EE}
+.sblock.vision .sblock-head{background:#C0B4FF;color:#200E88}
+
+/* ── Rail grid ── */
+.rail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;margin-top:10px}
+.rail-card{border:0.5px solid #E2DDD8;border-radius:8px;padding:10px 12px;background:#FAFAF8}
+.rail-card-name{display:inline-block;margin-bottom:6px}
+.rail-card-body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#5A5750;line-height:1.5}
+.rail-card-status{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;font-weight:600;margin-top:6px}
+.rail-card-status.s-a{color:#0A8A38}
+.rail-card-status.s-p{color:#C86000}
+.rail-card-status.s-m{color:#CC1010}
+
+/* ── Nested rail detail toggle ── */
+details.rdt{margin-top:8px}
+details.rdt summary{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#8A867E;cursor:pointer;list-style:none;padding:6px 0;display:flex;align-items:center;gap:4px}
+details.rdt summary::-webkit-details-marker{display:none}
+details.rdt summary::after{content:'▾';font-size:10px;color:#ADADAA}
+details.rdt[open] summary::after{content:'▴'}
+
+/* ── Future state blocks ── */
+.vision-quote{font-style:italic;font-size:14px;color:#3A3730;padding:10px 14px;border-left:3px solid #8070EE;margin-bottom:16px;background:#EAE5FF;border-radius:0 6px 6px 0}
+.layer-section{margin-bottom:14px}
+.layer-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;color:#8A867E;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.layer-title-bar{height:2px;flex:1;background:#F0EDE8;border-radius:1px}
+.principle-note{background:#FAF9F7;border:0.5px solid #E2DDD8;border-radius:6px;padding:10px 12px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#6B6760;margin-top:12px;line-height:1.6}
+.principle-note strong{color:#1A1814;font-weight:600}
+
+/* ── Design principles ── */
+.principles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:16px}
+.principle-card{background:#FFF;border:0.5px solid #E2DDD8;border-radius:8px;padding:14px;overflow:hidden;position:relative}
+.principle-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0}
+.principle-card.p1::before{background:#8B5CF6}
+.principle-card.p2::before{background:#10B981}
+.principle-card.p3::before{background:#F59E0B}
+.principle-card.p4::before{background:#3B82F6}
+.principle-card-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;font-weight:600;color:#1A1814;margin-bottom:6px;margin-top:8px}
+.principle-card-body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#5A5750;line-height:1.6}
+
+/* ── Dark mode adaption for rail badge colors ── */
+@media (prefers-color-scheme:dark){
+  body{background:#1A1A18;color:#E8E5DF}
+  .page-header{border-color:#2E2C28}
+  .page-title{color:#E8E5DF}
+  .page-subtitle,.page-meta{color:#8A867E}
+  .scope-box{background:#222220;border-color:#2E2C28}
+  .hm-a{background:#0F4028}
+  .hm-p{background:#3A2400}
+  .hm-m{background:#3A1010}
+  .hm-n{background:#222220;color:#5A5750}
+  .hm-a .hm-sym{color:#50E890}
+  .hm-p .hm-sym{color:#FFCC44}
+  .hm-m .hm-sym{color:#FF7070}
+  .hm-n .hm-sym{color:#4A4842}
+  .hm td{border-color:#2A2A28}
+  .hm th{color:#8A867E;border-color:#2A2A28}
+  .hm td.cat-label{color:#E8E5DF}
+  .cat{background:#222220;border-color:#2E2C28}
+  .cat summary{background:#1E1E1C}
+  .cat[open]>summary{background:#222220;border-color:#2E2C28}
+  .cat-num{background:#2A2A28;border-color:#3A3A38}
+  .cat-title{color:#E8E5DF}
+  .seg{background:#2A2A28}
+  .seg-btn.active{background:#2E2C28;color:#E8E5DF;border-color:#3A3A38}
+  .sblock.aligned{border-color:#208848}
+  .sblock.aligned .sblock-head{background:#104830;color:#60F0A0}
+  .sblock.partial{border-color:#805000}
+  .sblock.partial .sblock-head{background:#3A2400;color:#FFD060}
+  .sblock.missing{border-color:#803030}
+  .sblock.missing .sblock-head{background:#3A1010;color:#FF8080}
+  .sblock.railspec{border-color:#205090}
+  .sblock.railspec .sblock-head{background:#0F2248;color:#80BCFF}
+  .sblock.vision{border-color:#3828A0}
+  .sblock.vision .sblock-head{background:#1A1248;color:#C0B4FF}
+  .sblock-body{background:#1E1E1C}
+  .sblock-body li,.sblock-body p{color:#C8C5BC}
+  .vision-quote{color:#A8A8A0;border-color:#7060E0;background:#1A1438}
+  .rail-card{background:#1E1E1C;border-color:#2E2C28}
+  .rail-card-body{color:#8A867E}
+  .principle-note{background:#1E1E1C;border-color:#2E2C28;color:#8A867E}
+  .principle-note strong{color:#C8C5BC}
+  .principle-card{background:#222220;border-color:#2E2C28}
+  .principle-card-title{color:#E8E5DF}
+  .principle-card-body{color:#8A867E}
+  .r-tr{background:#0A2040;color:#80BCFF}
+  .r-bp{background:#043020;color:#50E8B0}
+  .r-rtp{background:#18104A;color:#B0A8FF}
+  .r-z{background:#3A0818;color:#FF90C0}
+  .r-ach{background:#143200;color:#90E040}
+  .r-w{background:#3A2000;color:#FFD060}
+  .r-me{background:#2A2A28;color:#A0A09A}
+  .bdg-a{background:#104830;color:#60F0A0}
+  .bdg-p{background:#3A2400;color:#FFD060}
+  .bdg-m{background:#3A1010;color:#FF8080}
+  .bdg-r{background:#0F2248;color:#80BCFF}
+  .bdg-n{background:#2A2A28;color:#6B6760}
+  .scope-col-body{color:#8A867E}
+  .scope-in{color:#4FBD7A}
+  .heatmap-section .section-label,.layer-title{color:#6B6760}
+  .layer-title-bar{background:#2E2C28}
+}
+</style>
+
+<div class="page-header">
+  <div class="page-meta">Product &amp; design strategy · Payee unification initiative · Draft for alignment</div>
+  <h1 class="page-title">Payee / recipient management unification</h1>
+  <p class="page-subtitle">Cross-rail analysis covering Transfers (internal &amp; external), Bill Pay, RTP, Zelle, ACH, and Wire — with a view toward future Me-to-Me support. For product managers, designers, and design leads.</p>
+</div>
+
+<div class="scope-box">
+  <div>
+    <div class="scope-col-title">In scope</div>
+    <div class="scope-col-body">
+      <span class="scope-in">✓</span> How customers understand and manage "who they pay"<br>
+      <span class="scope-in">✓</span> Payee data, display, add, edit, group, and settings UX<br>
+      <span class="scope-in">✓</span> Where a shared payee foundation can be built<br>
+      <span class="scope-in">✓</span> Why certain differences must remain rail-specific
+    </div>
+  </div>
+  <div>
+    <div class="scope-col-title">Out of scope</div>
+    <div class="scope-col-body">
+      <span class="scope-out">✗</span> Payment execution logic or routing<br>
+      <span class="scope-out">✗</span> Merging backend payment rails or network integrations<br>
+      <span class="scope-out">✗</span> Limit structures, pricing, or compliance rule changes<br>
+      <span class="scope-out">✗</span> Production implementation specifications
+    </div>
+  </div>
+</div>
+
+<div class="legend" style="margin-bottom:28px">
+  <span class="legend-label">Status key:</span>
+  <span class="bdg bdg-a"><span class="dot dot-a"></span>Aligned</span>
+  <span class="bdg bdg-p"><span class="dot dot-p"></span>Partial / inconsistent</span>
+  <span class="bdg bdg-m"><span class="dot dot-m"></span>Missing</span>
+  <span class="bdg bdg-r"><span class="dot dot-r"></span>Rail-specific / intentional</span>
+  <span class="bdg bdg-n"><span class="dot dot-n"></span>Not applicable</span>
+</div>
+
+<div class="heatmap-section">
+  <div class="section-label">Capability alignment heatmap — current state</div>
+  <div class="heatmap-wrap">
+    <table class="hm">
+      <thead>
+        <tr>
+          <th class="cat-h" style="text-align:left">Category</th>
+          <th><span class="rail-pill r-tr">Transfers</span></th>
+          <th><span class="rail-pill r-bp">Bill Pay</span></th>
+          <th><span class="rail-pill r-rtp">RTP</span></th>
+          <th><span class="rail-pill r-z">Zelle</span></th>
+          <th><span class="rail-pill r-ach">ACH</span></th>
+          <th><span class="rail-pill r-w">Wire</span></th>
+          <th><span class="rail-pill r-me">Me-to-Me</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="cat-label">1 · View payees / recipients</td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+        <tr>
+          <td class="cat-label">2 · Add payee / recipient</td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-a"><span class="hm-sym">✓</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-a"><span class="hm-sym">✓</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+        <tr>
+          <td class="cat-label">3 · View / edit payee</td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+        <tr>
+          <td class="cat-label">4 · Group payees</td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+        <tr>
+          <td class="cat-label">5 · Manage / settings</td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-a"><span class="hm-sym">✓</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+        <tr>
+          <td class="cat-label">6 · Education / safety</td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-a"><span class="hm-sym">✓</span></td>
+          <td class="hm-m"><span class="hm-sym">✗</span></td>
+          <td class="hm-p"><span class="hm-sym">~</span></td>
+          <td class="hm-n"><span class="hm-sym">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#ADADAA;margin-top:6px">✓ Aligned &nbsp;·&nbsp; ~ Partial / inconsistent &nbsp;·&nbsp; ✗ Missing &nbsp;·&nbsp; — Not applicable</div>
+</div>
+
+<div class="section-label">Category analysis — expand each to toggle current vs future state</div>
+
+<div class="categories">
+
+  <!-- ─── CATEGORY 1: VIEW PAYEES ─── -->
+  <details class="cat" open>
+    <summary>
+      <span class="cat-num">1</span>
+      <span class="cat-title">View payees / recipients</span>
+      <span class="cat-desc">List, browse, and locate saved payees</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c1','cur')" id="c1-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c1','fut')" id="c1-fut-btn">Future state</button>
+      </div>
+
+      <div id="c1-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock aligned">
+            <div class="sblock-head"><span class="dot dot-a"></span>Aligned across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Every rail maintains a persistent list of saved payees / recipients</li>
+                <li>Each list entry displays at minimum: payee name and one primary identifier</li>
+                <li>All lists support basic navigation — tap or click to open a detail view</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial / inconsistent across rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Visual pattern varies significantly: cards (Zelle), plain rows (ACH, RTP), form-style tables (Wire), mixed lists (Transfers, Bill Pay)</li>
+                <li>Active / inactive status shown only in Transfers and Bill Pay — absent elsewhere</li>
+                <li>Sort order, filtering, and search vary widely or are entirely absent</li>
+                <li>No unified search that spans multiple payment rails</li>
+                <li>Payee count and management are siloed per rail — the same recipient can appear as separate entries in Zelle, ACH, and Wire</li>
+              </ul>
+              <details class="rdt">
+                <summary>Show rail-by-rail breakdown</summary>
+                <div class="rail-grid" style="margin-top:10px">
+                  <div class="rail-card"><span class="rail-pill r-tr rail-card-name">Transfers</span><div class="rail-card-body">Nickname + bank name + masked account. Separate tabs for internal vs external accounts.</div><div class="rail-card-status s-p">Partial</div></div>
+                  <div class="rail-card"><span class="rail-pill r-bp rail-card-name">Bill Pay</span><div class="rail-card-body">Biller name + masked account + autopay indicator + next due date. Richest list view of any rail.</div><div class="rail-card-status s-p">Partial</div></div>
+                  <div class="rail-card"><span class="rail-pill r-rtp rail-card-name">RTP</span><div class="rail-card-body">Contact name + bank identifier. Minimal context; no status signals. Real-time availability not surfaced on list.</div><div class="rail-card-status s-p">Partial</div></div>
+                  <div class="rail-card"><span class="rail-pill r-z rail-card-name">Zelle</span><div class="rail-card-body">Contact directory view tied to device contacts. Shows phone or email. No bank details visible.</div><div class="rail-card-status s-p">Partial</div></div>
+                  <div class="rail-card"><span class="rail-pill r-ach rail-card-name">ACH</span><div class="rail-card-body">Template name or beneficiary name; routing info shown. Company ID and SEC code not visible to customers.</div><div class="rail-card-status s-p">Partial</div></div>
+                  <div class="rail-card"><span class="rail-pill r-w rail-card-name">Wire</span><div class="rail-card-body">Beneficiary name + bank / SWIFT. Domestic and international beneficiaries split into separate lists.</div><div class="rail-card-status s-p">Partial</div></div>
+                </div>
+              </details>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>No unified payee roster that spans rails — customers must navigate to each rail separately to find a specific person</li>
+                <li>No deduplication or linking of the same real-world recipient across rails</li>
+                <li>No "quick pay" or frequent payee shortcut at the roster level</li>
+                <li>No last-payment date or payment frequency visible on list entries</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c1-fut-panel" style="display:none">
+        <p class="vision-quote">A single payee roster at the customer level — not one per rail. Customers find who they pay; the system decides how.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>One payee roster page surfaces all saved payees, regardless of rail</li>
+                <li>Each roster entry shows: name / nickname, relationship type (person, business, biller), and rail badges indicating which rails are configured for that payee</li>
+                <li>Shared search, sort, and filter apply across all rails from a single entry point</li>
+                <li>Contextual metadata at list level: last payment date, payment frequency, verification status</li>
+                <li>"Quick pay" shortcut available from list view for recently used payees</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Zelle:</strong> entries remain phone / email keyed; bank details are never stored or displayed (Zelle network requirement)</li>
+                <li><strong>Wire:</strong> domestic vs international split preserved in payee type indicator; SWIFT / BIC shown in detail, not list</li>
+                <li><strong>Bill Pay:</strong> autopay indicator and next due date remain visible in list — customers rely on these for payment planning</li>
+                <li><strong>RTP:</strong> real-time capability status badge shown per payee (some accounts cannot receive RTP — this is operationally relevant)</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> The list view is a shared container. The content within each payee entry can carry rail-specific signals where those signals have real meaning to the customer's next decision.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ─── CATEGORY 2: ADD PAYEE ─── -->
+  <details class="cat">
+    <summary>
+      <span class="cat-num">2</span>
+      <span class="cat-title">Add payee / recipient</span>
+      <span class="cat-desc">Onboarding a new person or entity to pay</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c2','cur')" id="c2-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c2','fut')" id="c2-fut-btn">Future state</button>
+      </div>
+
+      <div id="c2-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock aligned">
+            <div class="sblock-head"><span class="dot dot-a"></span>Aligned across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>All rails require a destination identifier to create a payee (account number, phone, email, routing, SWIFT)</li>
+                <li>All rails require a name or nickname to save a payee</li>
+                <li>All rails confirm intent — at minimum an explicit "Save" or "Add" action before persisting</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial / inconsistent across rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Verification method differs significantly and has no shared UX language:</li>
+              </ul>
+              <div class="rail-grid">
+                <div class="rail-card"><span class="rail-pill r-tr rail-card-name">Transfers</span><div class="rail-card-body">Micro-deposit verification (1–3 business days). Customer confirms two small amounts.</div><div class="rail-card-status s-p">Delayed verification</div></div>
+                <div class="rail-card"><span class="rail-pill r-bp rail-card-name">Bill Pay</span><div class="rail-card-body">No verification. Account number stored as-entered. Errors surface only at payment time.</div><div class="rail-card-status s-p">No verification</div></div>
+                <div class="rail-card"><span class="rail-pill r-rtp rail-card-name">RTP</span><div class="rail-card-body">No dedicated "add payee" flow. Routing + account entered at payment time. No payee saved.</div><div class="rail-card-status s-m">No add flow</div></div>
+                <div class="rail-card"><span class="rail-pill r-z rail-card-name">Zelle</span><div class="rail-card-body">Phone or email lookup against Zelle directory. Instant. Recipient must be enrolled.</div><div class="rail-card-status s-a">Instant lookup</div></div>
+                <div class="rail-card"><span class="rail-pill r-ach rail-card-name">ACH</span><div class="rail-card-body">Routing + account form. Prenote / micro-deposit optional. Often skipped in practice.</div><div class="rail-card-status s-p">Optional verification</div></div>
+                <div class="rail-card"><span class="rail-pill r-w rail-card-name">Wire</span><div class="rail-card-body">Complex form: legal name, address, bank SWIFT, intermediary (if applicable). No real-time validation.</div><div class="rail-card-status s-p">Manual, no validation</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>No shared "Add payee" entry point — customers must navigate to each rail separately and repeat name / contact info</li>
+                <li>No progressive disclosure: adding the same person to Zelle and ACH requires two completely separate flows with no linkage</li>
+                <li>No deduplication prompt: the system allows identical real-world recipients to be saved as separate records across rails</li>
+                <li>No payee profile created at setup — payee identity is owned by the rail, not by the customer relationship</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c2-fut-panel" style="display:none">
+        <p class="vision-quote">One "Add payee" door. Rail configuration happens inside, as modules — not as separate doors the customer has to find.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Single "Add payee" entry point at the customer level</li>
+                <li>Step 1: name, nickname, relationship type (person / business / biller) — shared across all rails</li>
+                <li>Step 2: choose which rails to configure for this payee (multi-select)</li>
+                <li>Rail configuration modules load sequentially; shared identity fields (name, address) are not re-entered for each rail</li>
+                <li>Deduplication: system checks if a payee with a matching name or identifier exists — "James Miller already exists in Zelle. Link this ACH account to the same payee profile?"</li>
+                <li>Result: a unified payee profile record with rail-specific sub-records attached</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Wire:</strong> full compliance fields — legal name, physical address, bank SWIFT / BIC, purpose of payment — cannot be simplified; required by OFAC screening and Reg J</li>
+                <li><strong>Zelle:</strong> directory lookup flow remains Zelle-network-specific; no bank details captured or stored; cannot be merged with ACH or Transfers add flow</li>
+                <li><strong>Transfers (external):</strong> micro-deposit timeline is regulatory, not a UX choice; the delay must be communicated clearly but cannot be removed</li>
+                <li><strong>RTP:</strong> no persistent payee saved today — future state should introduce an RTP payee record, but instant account validation at enrollment must remain in the flow</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> The shared foundation captures identity. Rail-specific modules capture capability. Customers shouldn't have to re-prove who someone is just because they're adding a new way to pay them.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ─── CATEGORY 3: VIEW / EDIT PAYEE ─── -->
+  <details class="cat">
+    <summary>
+      <span class="cat-num">3</span>
+      <span class="cat-title">View / edit payee</span>
+      <span class="cat-desc">Accessing and modifying saved payee details</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c3','cur')" id="c3-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c3','fut')" id="c3-fut-btn">Future state</button>
+      </div>
+
+      <div id="c3-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock aligned">
+            <div class="sblock-head"><span class="dot dot-a"></span>Aligned across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>All rails display payee name and primary identifier on the detail screen</li>
+                <li>All rails provide a delete / remove action</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial / inconsistent — edit capability by rail</div>
+            <div class="sblock-body">
+              <p style="margin-bottom:8px">Edit capability varies significantly with no consistent UI signal about what is editable vs locked:</p>
+              <div class="rail-grid">
+                <div class="rail-card"><span class="rail-pill r-tr rail-card-name">Transfers</span><div class="rail-card-body">Nickname editable. Routing + account locked — must delete and re-add to change bank details.</div><div class="rail-card-status s-p">Nickname only</div></div>
+                <div class="rail-card"><span class="rail-pill r-bp rail-card-name">Bill Pay</span><div class="rail-card-body">Account number with biller can be edited. Biller name is locked. Next payment date accessible.</div><div class="rail-card-status s-p">Account editable</div></div>
+                <div class="rail-card"><span class="rail-pill r-rtp rail-card-name">RTP</span><div class="rail-card-body">No detail or edit view. No payee record exists to edit. Must start over if recipient info changes.</div><div class="rail-card-status s-m">View-only / none</div></div>
+                <div class="rail-card"><span class="rail-pill r-z rail-card-name">Zelle</span><div class="rail-card-body">Phone / email view only. Token cannot be changed in app. No nickname or notes field.</div><div class="rail-card-status s-m">View-only</div></div>
+                <div class="rail-card"><span class="rail-pill r-ach rail-card-name">ACH</span><div class="rail-card-body">Nickname editable. Routing / account sometimes locked after prenote or verification.</div><div class="rail-card-status s-p">Partial edit</div></div>
+                <div class="rail-card"><span class="rail-pill r-w rail-card-name">Wire</span><div class="rail-card-body">View-only in most implementations. Full delete + re-entry required to change any field.</div><div class="rail-card-status s-m">View-only</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>No unified payee profile view — customer cannot see "all the ways I can pay James Miller" in one place</li>
+                <li>No edit history, audit trail, or "last modified" timestamp for any rail</li>
+                <li>No ability to add personal notes or tags to a payee</li>
+                <li>No clear UI explanation of why a field is locked (compliance? network rule? verification state?)</li>
+                <li>No verification status transparency — customers don't know whether a payee is verified, pending, or unverified</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c3-fut-panel" style="display:none">
+        <p class="vision-quote">A payee profile is the canonical record. Rail connections are modules within it — each with their own edit rules, clearly labelled.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Canonical payee profile page: name, nickname, notes, relationship type, date added, last payment date</li>
+                <li>All shared fields (name, nickname, notes) editable at the profile level — changes apply across all configured rails</li>
+                <li>Rail configurations displayed as distinct, labeled modules: "Zelle connection," "ACH account," "Wire beneficiary"</li>
+                <li>Consistent edit intent signal: pencil icon = editable; lock icon = locked by network or compliance rule, with tooltip explanation</li>
+                <li>Audit trail: added date, last modified, and verification status visible per rail module</li>
+                <li>Customer-facing language: "Locked — this field was set during verification and cannot be changed. To update, remove and re-add."</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Zelle module:</strong> phone / email shown as view-only — Zelle token cannot be changed; this is a network constraint, not a design choice</li>
+                <li><strong>Wire module:</strong> legal name and address locked post-verification — required for OFAC screening integrity; editing = new verification cycle</li>
+                <li><strong>RTP module:</strong> real-time capability status indicator (eligible / ineligible) — this is a live account-level attribute, not editable</li>
+                <li><strong>ACH module:</strong> prenote status and account verification date shown; routing / account editable only before first transaction or after reversal</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> The distinction between "locked by us" and "locked by a network rule we don't control" is meaningful to customers and must be surfaced — not hidden behind a generic disabled state.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ─── CATEGORY 4: GROUP PAYEES ─── -->
+  <details class="cat">
+    <summary>
+      <span class="cat-num">4</span>
+      <span class="cat-title">Group payees</span>
+      <span class="cat-desc">Organizing payees into categories or collections</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c4','cur')" id="c4-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c4','fut')" id="c4-fut-btn">Future state</button>
+      </div>
+
+      <div id="c4-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial — only Bill Pay supports meaningful grouping</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Bill Pay:</strong> category grouping supported (e.g., Utilities, Subscriptions, Mortgage). User-assigned or auto-categorized by biller type. Useful but scoped to Bill Pay only.</li>
+                <li><strong>Transfers (some implementations):</strong> nickname-based organization can serve as a weak proxy for grouping, but no explicit group structure exists</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing — no grouping in five of six rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>RTP, Zelle, ACH, and Wire: no grouping capability whatsoever — payees are an undifferentiated list</li>
+                <li>No cross-rail grouping: a customer cannot tag "family members" in a way that surfaces across Zelle and ACH simultaneously</li>
+                <li>No user-defined labels, tags, or favorites beyond Bill Pay's category system</li>
+                <li>No smart grouping based on payment behavior (e.g., "most paid," "recurring," "inactive")</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c4-fut-panel" style="display:none">
+        <p class="vision-quote">Groups live at the payee profile layer — they're customer-defined metadata, not a rail feature. Every rail benefits automatically.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>User-defined groups at the payee profile layer, independent of rail — any payee can belong to one or more groups</li>
+                <li>Groups are metadata only — no impact on payment routing, limits, or execution logic</li>
+                <li>Default system groups to bootstrap organization: "Frequent," "Family," "Utilities," "Vendors"</li>
+                <li>Smart groups suggested based on payment history: "You've paid these 4 people every month — create a group?"</li>
+                <li>Groups appear as filter options on the payee roster and on payment history views</li>
+                <li>Favorites / starred payees as a lightweight grouping primitive available to all rail types</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Bill Pay:</strong> biller categories (Utilities, Subscriptions) maintained as a separate, richer taxonomy — these are biller-type categories, not customer-defined groups, and carry different meaning</li>
+                <li><strong>Rail-type tags</strong> (e.g., "Zelle contact," "Wire beneficiary") are system-generated descriptors, distinct from customer-defined groups</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> Customer-defined groups and system-defined rail or biller taxonomy coexist. They solve different problems — don't merge them. A "Utilities" biller category is objective; a "Family" group is personal.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ─── CATEGORY 5: MANAGE / SETTINGS ─── -->
+  <details class="cat">
+    <summary>
+      <span class="cat-num">5</span>
+      <span class="cat-title">Manage / settings</span>
+      <span class="cat-desc">Per-payee controls, notifications, and deletion</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c5','cur')" id="c5-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c5','fut')" id="c5-fut-btn">Future state</button>
+      </div>
+
+      <div id="c5-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock aligned">
+            <div class="sblock-head"><span class="dot dot-a"></span>Aligned across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>All rails offer a delete / remove action for saved payees (though confirmation UX and consequence clarity vary)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial / inconsistent across rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Nickname editing:</strong> available in Transfers and ACH; absent in Zelle, RTP, and Wire</li>
+                <li><strong>Notification settings:</strong> Bill Pay (payment alerts, autopay reminders per biller); Zelle (at network level only, not per-payee); all other rails — none</li>
+                <li><strong>Verification status:</strong> visible in Transfers (micro-deposit pending / complete); absent in all other rails</li>
+              </ul>
+              <details class="rdt">
+                <summary>Show settings availability by rail</summary>
+                <div class="rail-grid" style="margin-top:10px">
+                  <div class="rail-card"><span class="rail-pill r-tr rail-card-name">Transfers</span><div class="rail-card-body">Nickname edit, delete, micro-deposit status. No notification controls per payee.</div></div>
+                  <div class="rail-card"><span class="rail-pill r-bp rail-card-name">Bill Pay</span><div class="rail-card-body">Autopay toggle, payment alerts, account edit, delete. Most complete settings of any rail.</div></div>
+                  <div class="rail-card"><span class="rail-pill r-rtp rail-card-name">RTP</span><div class="rail-card-body">No payee settings surface. Add / remove only. No notifications or status.</div></div>
+                  <div class="rail-card"><span class="rail-pill r-z rail-card-name">Zelle</span><div class="rail-card-body">Delete only. Notification preferences exist at the Zelle level, not per contact.</div></div>
+                  <div class="rail-card"><span class="rail-pill r-ach rail-card-name">ACH</span><div class="rail-card-body">Nickname edit, delete, prenote status. No notification controls.</div></div>
+                  <div class="rail-card"><span class="rail-pill r-w rail-card-name">Wire</span><div class="rail-card-body">Delete only. Beneficiary verification / hold status not exposed to customers.</div></div>
+                </div>
+              </details>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>No shared settings layer: nickname, notes, and notifications must be configured per rail if available at all</li>
+                <li>Deleting a payee in one rail has no effect on other rails and produces no prompt to manage the cross-rail relationship</li>
+                <li>No explanation of deletion consequences: customers don't know whether removing a Zelle contact also removes their Zelle token registration</li>
+                <li>No activity log or payment history accessible from payee settings</li>
+                <li>No ability to "pause" a payee without deleting them</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c5-fut-panel" style="display:none">
+        <p class="vision-quote">Settings that belong to the payee relationship are shared. Settings that belong to the rail are owned by the rail module — but visible in one place.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Shared settings panel per payee profile: nickname, notes, payment notifications on / off, mark as favorite</li>
+                <li>Activity summary in settings: last payment date, total payments in last 12 months, first payment date</li>
+                <li>"Danger zone" section with scoped deletion UI: "Remove from all rails" or "Remove only from Wire" — customer chooses scope</li>
+                <li>Deletion consequence language required before confirmation: "Removing from Zelle disconnects the Zelle payment token. Your Zelle account remains active and this contact can be re-added."</li>
+                <li>Pause / archive option: deactivate a payee without deletion — visible in "Archived" filter, restorable</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Bill Pay:</strong> autopay settings and payment schedule remain within the Bill Pay module — these are biller-relationship settings, not payee-profile settings</li>
+                <li><strong>Wire:</strong> compliance hold status and OFAC screening status are operational fields managed at the rail level; not customer-editable, but should be visible</li>
+                <li><strong>ACH:</strong> prenote status, company ID filter, and SEC code type remain ACH-module-specific settings</li>
+                <li><strong>RTP:</strong> real-time capability status (eligible / ineligible) is a live attribute, not a setting — shown as informational only</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> The shared settings panel is for things the customer controls about the relationship. Rail modules surface things the system controls about the capability. The customer should see both — but the hierarchy must be clear.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ─── CATEGORY 6: EDUCATION / SAFETY ─── -->
+  <details class="cat">
+    <summary>
+      <span class="cat-num">6</span>
+      <span class="cat-title">Education / safety</span>
+      <span class="cat-desc">Fraud awareness, risk signals, and customer guidance</span>
+      <span class="cat-chev">▾</span>
+    </summary>
+    <div class="cat-body">
+      <div class="seg">
+        <button class="seg-btn active" onclick="setTab('c6','cur')" id="c6-cur-btn">Current state</button>
+        <button class="seg-btn" onclick="setTab('c6','fut')" id="c6-fut-btn">Future state</button>
+      </div>
+
+      <div id="c6-cur-panel">
+        <div class="status-blocks">
+          <div class="sblock aligned">
+            <div class="sblock-head"><span class="dot dot-a"></span>Aligned across all rails</div>
+            <div class="sblock-body">
+              <ul>
+                <li>None — there is no safety or education layer applied consistently across all rails today</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock partial">
+            <div class="sblock-head"><span class="dot dot-p"></span>Partial — exists only in Zelle and Wire</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Zelle:</strong> strong, Zelle-network-mandated fraud warnings present throughout the add and send flows — "Only send money to people you know and trust." Positioned at point of transaction, not payee setup.</li>
+                <li><strong>Wire:</strong> irreversibility notice shown at payment execution — "Wire transfers cannot be cancelled or reversed once sent." Not present at payee setup.</li>
+                <li><strong>Bill Pay:</strong> some billers surface account verification guidance during add — inconsistent, biller-driven, not system-driven.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock missing">
+            <div class="sblock-head"><span class="dot dot-m"></span>Missing — critical gaps</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Transfers, RTP, and ACH: zero proactive safety or fraud education during payee setup or management</li>
+                <li>No consistent risk level indicator to help customers assess a new payee (new vs known, verified vs unverified)</li>
+                <li>Safety warnings appear only at payment execution — by then, the payee is already "trusted" by the system. The teachable moment is payee creation.</li>
+                <li>No stale payee prompts: no system check for payees not paid in 6–12+ months with a "confirm details before sending" reminder</li>
+                <li>No customer-facing explanation of what happens if a payment goes to the wrong account — each rail has a different answer (reversal window, finality, dispute process)</li>
+                <li>No unified language for "what kind of account is this" — risk context (new wire beneficiary vs known biller) is not communicated</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="c6-fut-panel" style="display:none">
+        <p class="vision-quote">Safety education moves to the moment of payee creation — before trust is established, not after a mistake is made.</p>
+        <div class="status-blocks">
+          <div class="sblock vision">
+            <div class="sblock-head"><span class="dot dot-r"></span>Shared foundation — unify these</div>
+            <div class="sblock-body">
+              <ul>
+                <li>Safety layer applied at payee creation for all rails — brief, contextual, not alarming for low-risk scenarios</li>
+                <li>Risk level indicator per payee type, displayed at profile level:
+                  <br>· <span class="bdg bdg-a" style="font-size:10px">Low risk</span> — verified biller, known institution, established relationship
+                  <br>· <span class="bdg bdg-p" style="font-size:10px">Medium</span> — unverified individual, first-time recipient, no prior payment history
+                  <br>· <span class="bdg bdg-m" style="font-size:10px">Higher risk</span> — new wire beneficiary, international, no prior relationship
+                </li>
+                <li>Stale payee prompt: "You haven't paid [Name] in 180 days. Confirm their details are still correct before sending."</li>
+                <li>Rail-appropriate recovery language at setup — not buried post-failure: "If this payment goes to the wrong account, here's what we can do."</li>
+                <li>Consistent copy principles: specific, honest, and actionable — not generic legal disclosures customers skip</li>
+              </ul>
+            </div>
+          </div>
+          <div class="sblock railspec">
+            <div class="sblock-head"><span class="dot dot-r"></span>Intentional rail differences — preserve these</div>
+            <div class="sblock-body">
+              <ul>
+                <li><strong>Wire:</strong> mandatory irreversibility disclosure required at both payee setup AND payment execution — this is a compliance obligation under Reg J and UCC Article 4A; cannot be unified away or reduced to a shared generic warning</li>
+                <li><strong>Zelle:</strong> Zelle-network fraud messaging must be retained verbatim as a network participation requirement; Truist cannot modify or replace this copy</li>
+                <li><strong>RTP:</strong> real-time finality disclosure retained — payments are irrevocable in practice even if technically different from wire; customers need to know this is different from ACH</li>
+                <li><strong>ACH:</strong> return and reversal window disclosure is unique to ACH and valuable — customers need to understand this is the one rail with a meaningful error-recovery window (typically 2 banking days)</li>
+              </ul>
+              <div class="principle-note"><strong>Design principle:</strong> The shared safety layer raises the floor — every rail gets baseline education. Rail-specific disclosures raise the ceiling where compliance or network rules require it. The shared layer must never water down or replace a mandated disclosure.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<!-- ─── DESIGN PRINCIPLES ─── -->
+<div style="margin-bottom:12px">
+  <div class="section-label">Design principles for the unified future state</div>
+  <div class="principles-grid">
+    <div class="principle-card p1">
+      <div class="principle-card-title">Layered consolidation, not forced uniformity</div>
+      <div class="principle-card-body">A shared payee foundation sits above rail-specific modules. Consolidation is real at the customer layer. Rail differences are preserved below it — not papered over.</div>
+    </div>
+    <div class="principle-card p2">
+      <div class="principle-card-title">Identity once, capability as needed</div>
+      <div class="principle-card-body">A customer should prove who a payee is once. Configuring a new payment rail for that payee should never require re-establishing identity from scratch.</div>
+    </div>
+    <div class="principle-card p3">
+      <div class="principle-card-title">Explain the lock, not just the lock</div>
+      <div class="principle-card-body">When a field cannot be edited, the UI must say why — and whether the constraint is a product decision, a network rule, or a compliance requirement. Customers deserve the distinction.</div>
+    </div>
+    <div class="principle-card p4">
+      <div class="principle-card-title">Safety at setup, not just at send</div>
+      <div class="principle-card-body">Risk education and fraud awareness belong at payee creation — the moment when trust is being established. Point-of-payment warnings arrive too late to change the customer's mental model.</div>
+    </div>
+  </div>
+</div>
+
+<div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#ADADAA;padding:24px 0 8px;border-top:0.5px solid #E2DDD8;margin-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+  <span>Payee / recipient management unification · Strategy artifact · Draft</span>
+  <span>For alignment review — not a production specification</span>
+</div>
+
+<script>
+function setTab(cat, tab) {
+  ['cur','fut'].forEach(function(t) {
+    var panel = document.getElementById(cat+'-'+t+'-panel');
+    var btn = document.getElementById(cat+'-'+t+'-btn');
+    if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+}
+</script>
+</body>
+</html>
